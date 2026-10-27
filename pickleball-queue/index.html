@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pickleball Queue</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Header -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="logo">🎾</span>
+          <div>
+            <h1>Pickleball Queue</h1>
+            <p class="subtitle">Open-play court &amp; paddle-stack manager</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="mode-toggle">
+            <label class="checkbox-label">
+              <input id="singlesToggle" type="checkbox" />
+              Singles (2 per court)
+            </label>
+          </div>
+          <div class="mode-toggle">
+            <label class="checkbox-label" title="Give players with the fewest games priority for the next court">
+              <input id="balanceToggle" type="checkbox" checked />
+              Balance games
+            </label>
+          </div>
+          <div class="mode-toggle">
+            <label class="checkbox-label" title="Automatically start the next group when a court's game finishes">
+              <input id="autoStartToggle" type="checkbox" checked />
+              Auto-start
+            </label>
+          </div>
+          <div class="mode-toggle">
+            <label class="checkbox-label" title="Split each court's four players into evenly-matched sides by skill level">
+              <input id="skillBalanceToggle" type="checkbox" checked />
+              Balance skill
+            </label>
+          </div>
+          <button id="resetBtn" class="btn danger ghost">Reset all</button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <!-- Left column: queue -->
+        <section class="panel queue-panel">
+          <h2>
+            Main Queue
+            <span id="queueCount" class="count-badge">0</span>
+            <button id="shuffleQueueBtn" class="btn secondary small queue-shuffle">
+              🔀 Shuffle
+            </button>
+          </h2>
+
+          <form id="addForm" class="add-form" autocomplete="off">
+            <input
+              id="playerName"
+              type="text"
+              placeholder="Player name"
+              maxlength="40"
+            />
+            <select id="playerLevel" title="Skill level">
+              <option value="novice">Novice</option>
+              <option value="intermediate" selected>Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+            <button type="submit" class="btn">+ Add</button>
+          </form>
+
+          <ol id="queueList" class="queue-list"></ol>
+          <p id="queueEmpty" class="empty-hint">
+            No one waiting. Add players above.
+          </p>
+
+          <div class="challenge-block">
+            <h3>
+              <span class="challenge-title">⚔ Challenge Court Queue</span>
+              <span id="challengeCount" class="count-badge">0</span>
+              <button id="shuffleChallengeBtn" class="btn secondary small queue-shuffle">
+                🔀 Shuffle
+              </button>
+            </h3>
+
+            <form id="challengeForm" class="add-form" autocomplete="off">
+              <input
+                id="challengeName"
+                type="text"
+                placeholder="Challenger name"
+                maxlength="40"
+              />
+              <select id="challengeLevel" title="Skill level">
+                <option value="novice">Novice</option>
+                <option value="intermediate" selected>Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+              <button type="submit" class="btn">+ Add</button>
+            </form>
+
+            <ol id="challengeList" class="queue-list"></ol>
+            <p id="challengeEmpty" class="empty-hint">
+              No challengers waiting. Add players, or send them over from the
+              main queue.
+            </p>
+          </div>
+
+          <div class="raffle-block">
+            <h3>
+              <span class="raffle-title">🎲 Raffle</span>
+              <span id="rafflePool" class="count-badge" title="Players eligible (main + challenge queues)">0</span>
+              <button id="raffleDrawBtn" class="btn small raffle-draw">
+                🎲 Draw winner
+              </button>
+              <button id="raffleClearBtn" class="btn ghost small" title="Clear the current winner and draw history">
+                Clear
+              </button>
+            </h3>
+
+            <div id="raffleWinner" class="raffle-winner" hidden></div>
+            <p id="raffleEmpty" class="empty-hint">
+              Add players to the main or challenge queue to run a raffle.
+            </p>
+
+            <div class="prize-block">
+              <div class="prize-head">
+                <span class="prize-title">🎁 Prizes</span>
+                <span id="prizeCount" class="count-badge" title="Prizes on offer">0</span>
+              </div>
+              <form id="prizeForm" class="add-form prize-form" autocomplete="off">
+                <input
+                  id="prizeName"
+                  type="text"
+                  placeholder="Add a prize (e.g. Free drink)"
+                  maxlength="60"
+                />
+                <button type="submit" class="btn small">+ Add</button>
+              </form>
+              <ul id="prizeList" class="prize-list"></ul>
+              <p id="prizeEmpty" class="empty-hint">
+                No prizes yet. Add some so winners know what they can get.
+              </p>
+            </div>
+
+            <ul id="raffleHistory" class="raffle-history"></ul>
+          </div>
+
+          <div class="checkedout-block">
+            <h3>
+              Checked out
+              <span id="checkedOutCount" class="count-badge">0</span>
+            </h3>
+            <ul id="checkedOutList" class="checkedout-list"></ul>
+            <p id="checkedOutEmpty" class="empty-hint">
+              No one has checked out yet.
+            </p>
+          </div>
+        </section>
+
+        <!-- Right column: courts -->
+        <section class="panel courts-panel">
+          <div class="courts-header">
+            <h2>Courts</h2>
+            <div class="court-controls">
+              <button id="removeCourtBtn" class="btn secondary small">− Court</button>
+              <span id="courtCount" class="count-badge">0</span>
+              <button id="addCourtBtn" class="btn secondary small">+ Court</button>
+            </div>
+          </div>
+          <div id="challengeBanner" class="challenge-banner" hidden>
+            <span class="challenge-banner-text"></span>
+            <button id="challengeBannerDismiss" class="icon-btn" title="Dismiss">✕</button>
+          </div>
+
+          <div id="courtsGrid" class="courts-grid"></div>
+
+          <div class="results-row results-row-3">
+            <div class="results-block">
+              <h3>Standings</h3>
+              <ol id="standingsList" class="standings-list"></ol>
+              <p id="standingsEmpty" class="empty-hint">
+                No games finished yet.
+              </p>
+            </div>
+            <div class="results-block">
+              <h3>Recent results</h3>
+              <ul id="historyList" class="history-list"></ul>
+              <p id="historyEmpty" class="empty-hint">
+                Finished games will show here.
+              </p>
+            </div>
+            <div class="results-block">
+              <h3>⚔ Challenge streaks</h3>
+              <div id="challengeStreakNow" class="challenge-streak-now" hidden></div>
+              <ul id="challengeReportList" class="history-list"></ul>
+              <p id="challengeReportEmpty" class="empty-hint">
+                Win 3 in a row on Court 1 to make the board.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <span>Runs in your browser. Data saved locally on this device.</span>
+        <span id="statusMeta"></span>
+      </footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
